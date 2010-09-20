@@ -42,6 +42,12 @@
 "  -The build and run features only work on windows. With a few tweaks this could work nice
 "  for mono on linux though...
 "
+"  TO DO :
+"  -Integrate mono xsp when running on non-windows
+"  -Intgrate mono xbuild when running on non-windows
+"  -More elegantly search for msbuild and webdev.exe
+"  
+"
 "  Enjoy! Feedback and patches are welcome.
 
 if (exists("g:loaded_aspnetide"))
@@ -119,10 +125,14 @@ function! s:BuildSolution()
     endif
 
     "let's check a couple logical places and hope you didn't install on the d drive...
-    let msbuildpaths = ['C:\\Windows\\Microsoft.NET\\Framework\\v4.0.30319\\MSBuild.exe', 'C:\\winnt\\Microsoft.NET\\Framework\\v4.0.30319\\MSBuild.exe']
+    let foundsln = 0
+    let foundmsbuild = 0
+    let msbuildpaths = ['C:\\Windows\\Microsoft.NET\\Framework\\v4.0.30319\\MSBuild.exe', 'C:\\winnt\\Microsoft.NET\\Framework\\v4.0.30319\\MSBuild.exe', 'C:\\WINDOWS\\Microsoft.NET\\Framework\\v3.5\MSBuild.exe']
     for msbuild in msbuildpaths
         if filereadable(msbuild)
+            let foundmsbuild = 1
             if filereadable(dotnet_sln) 
+                let foundsln = 1
                 exe 'w'
                 " TO DO :pass in sln or proj path to msbuild rather than changing current dir
                 exe 'cd '. fnamemodify(dotnet_sln, ':p:h') 
@@ -132,6 +142,13 @@ function! s:BuildSolution()
             endif
         endif
     endfor
+    "add some messaging if things go bad
+    if foundsln == 0
+        echoh ErrorMsg | echo 'Could not find solution file.' | echoh None
+    endif
+    if foundmsbuild == 0
+        echoh ErrorMsg | echo 'Could not find msbuild.' | echoh None
+    endif
 endf
 
 "setup integrated help

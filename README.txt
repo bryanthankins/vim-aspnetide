@@ -1,4 +1,4 @@
-Turns VIM into an asp.net net IDE! 
+Turns VIM into an asp.net IDE! 
 
 Features 
 ------------- 
