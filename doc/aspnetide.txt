@@ -8,27 +8,27 @@ This plugin allows you to easily edit ASP.NET applications with vim. It attempts
 
 aspnetide defines the following commands:
 
-|:ASPDoc|
+|:ASPHelp|
 |:ASPBuild|
 |:ASPAltFile|
 |:ASPRun|
 |:ASPGoTo|
 
-:ASPDoc                                         *:ASPDoc*
-   Jump to online help based on selected word: F1 or <leader>H
+:ASPHelp                                         *:ASPHelp*
+   Jump to online help based on selected word: F1 or <leader>ah
 
 :ASPBuild                                       *:ASPBuild*
-   Find a solution file for the project and build. Errors shown in quickfix. Function mapped to <leader>B
+   Find a solution file for the project and build. Errors shown in quickfix. Function mapped to <leader>ab
 
 :ASPAltFile                                     *:ASPAltFile*
-   Navigate to alternate files (ASPX <-> code-behind). Function mapped to <leader>A
+   Navigate to alternate files (ASPX <-> code-behind). Function mapped to <leader>af
 
 :ASPRun                                         *:ASPRun*
    Run app in local webserver and navigate to selected page. Function mapped
-   to F5 or <leader>R
+   to F5 or <leader>ar
 
 :ASPGoTo                                        *:ASPGoTo*
-   Takes you to the class file based on the current word. So if you are on "Utility" it will look through the directory tree for the utility class file.  
+   Takes you to the class file based on the current word. So if you are on "Utility" it will look through the directory tree for the utility class file. Function mapped to <leader>ag
 
 The latest stable version can be found at:
     http://www.vim.org/scripts/script.php?script_id=3243
