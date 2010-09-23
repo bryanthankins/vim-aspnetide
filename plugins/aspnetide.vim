@@ -1,54 +1,7 @@
-" Copyright (C) 2010 Bryant Hankins.
-"
-" This program is free software; you can redistribute it and/or modify
-" it under the terms of the GNU General Public License as published by
-" the Free Software Foundation; either version 2, or (at your option)
-" any later version.
-"
-" This program is distributed in the hope that it will be useful,
-" but WITHOUT ANY WARRANTY; without even the implied warranty of
-" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-" GNU General Public License for more details.
-"
-" You should have received a copy of the GNU General Public License
-" along with this program; if not, write to the Free Software Foundation,
-" Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  
-" 
+" aspnetide.vim: A Plugin that turns vim into an asp.net IDE! 
 " Author: Bryant Hankins (bryanthankins [at] gmail [dot] com)
-" URL:		http://www.bryanthankins.com
+" URL:	http://www.vim.org/scripts/script.php?script_id=3243
 " Version:	0.9
-" Last Change:  2010 Sept 18
-" 
-" aspnetide : 
-" A Plugin that turns vim into an asp.net IDE! 
-
-" Features :
-" "OnlineDoc - F1"
-"   Jump to online help based on selected word: F1 or <leader>H
-" "BuildSolution - <leader>B"
-"   Find a solution file for the project and build. Errors shown in quickfix: <leader>B
-" "AlternateFile - <leader>A"
-"   Navigate to alternate files (ASPX <-> code-behind): <leader>A
-" "ShowAppInBrowser - F5"
-"   Run app in local webserver and navigate to selected page: F5 or <leader>R
-" Install : 
-"  Copy this file to vimfiles/plugin/aspnetide.vim.  
-"
-" Notes :
-"  -For those new to vim, <leader> is typically a backslash on windows boxes
-"  -Alternate file navigation is ASP.NET webforms specific (I'll try to add MVC support soon)
-"  -You *may* need to have VS.NET installed for ShowAppInBrowser to work. Not sure if 
-"  the local web server gets installed with just the .net fromework.
-"  -The build and run features only work on windows. With a few tweaks this could work nice
-"  for mono on linux though...
-"
-"  TO DO :
-"  -Integrate mono xsp when running on non-windows
-"  -Intgrate mono xbuild when running on non-windows
-"  -More elegantly search for msbuild and webdev.exe
-"  
-"
-"  Enjoy! Feedback and patches are welcome.
 
 if (exists("g:loaded_aspnetide"))
   finish
@@ -56,20 +9,22 @@ endif
 let g:loaded_aspnetide= 1
 
 "map keys to new functions
-map <silent> <F1> :call <SID>OnlineDoc()<CR>
-imap <silent> <F1> <ESC>:call <SID>OnlineDoc()<CR>
-map <silent> <leader>H :call <SID>OnlineDoc()<CR>
-imap <silent> <leader>H <ESC>:call <SID>OnlineDoc()<CR>
-map <silent> <leader>A :call <SID>AlternateFile()<CR>
-imap <silent> <leader>A <ESC>:call <SID>AlternateFile()<CR>
-map <silent> <leader>R :call <SID>ShowAppInBrowser()<CR>
-imap <silent> <leader>R <ESC>:call <SID>ShowAppInBrowser()<CR>
-map <silent> <F5> :call <SID>ShowAppInBrowser()<CR>
-imap <silent> <F5> <ESC>:call <SID>ShowAppInBrowser()<CR>
-map <silent> <leader>B :call <SID>BuildSolution()<CR>
-imap <silent> <leader>B <ESC>:call <SID>BuildSolution()<CR>
+map <silent> <F1> :call <SID>ASPDoc()<CR>
+imap <silent> <F1> <ESC>:call <SID>ASPDoc()<CR>
+map <silent> <leader>H :call <SID>ASPDoc()<CR>
+imap <silent> <leader>H <ESC>:call <SID>ASPDoc()<CR>
+map <silent> <leader>A :call <SID>ASPAltFile()<CR>
+imap <silent> <leader>A <ESC>:call <SID>ASPAltFile()<CR>
+map <silent> <leader>R :call <SID>ASPRun()<CR>
+imap <silent> <leader>R <ESC>:call <SID>ASPRun()<CR>
+map <silent> <F5> :call <SID>ASPRun()<CR>
+imap <silent> <F5> <ESC>:call <SID>ASPRun()<CR>
+map <silent> <leader>B :call <SID>ASPBuild()<CR>
+imap <silent> <leader>B <ESC>:call <SID>ASPBuild()<CR>
+map <silent> <leader>G :call <SID>ASPGoTo()<CR>
+imap <silent> <leader>G <ESC>:call <SID>ASPGoTo()<CR>
 
-function! s:AlternateFile()
+function! s:ASPAltFile()
     let currExt = expand('%:e') 
     if currExt == 'aspx' || currExt == 'ascx' 
         let path = expand('%:p').'.'
@@ -110,7 +65,20 @@ function! s:ReadableWithoutExt(path, extensions)
 	return 0
 endf
 
-function! s:BuildSolution()
+function! s:ASPGoTo()
+    let currFileMatch = expand('<cword>:r').'.'.expand('%:e')
+    let currSearchPath = expand('%:p:h:h:h').'\**'
+    let fileToFind = findfile(currFileMatch,currSearchPath)
+    if filereadable(fileToFind)
+        exe 'w'
+        exe 'e '.fileToFind
+    else
+        echoh ErrorMsg | echo 'Could not find file.' | echoh None
+    endif
+endf
+
+
+function! s:ASPBuild()
     let dotnet_sln = fnameescape(globpath(expand('%:p:h'), '*.sln'))
     " Search a few levels up to see if we can find the sln file
     if empty(dotnet_sln)
@@ -133,7 +101,6 @@ function! s:BuildSolution()
             let foundmsbuild = 1
             if filereadable(dotnet_sln) 
                 let foundsln = 1
-                exe 'w'
                 " TO DO :pass in sln or proj path to msbuild rather than changing current dir
                 exe 'cd '. fnamemodify(dotnet_sln, ':p:h') 
                 exe 'set makeprg='.msbuild.'\ /nologo\ /v:q\ '
@@ -152,7 +119,7 @@ function! s:BuildSolution()
 endf
 
 "setup integrated help
-function! s:OnlineDoc()
+function! s:ASPDoc()
   let wordUnderCursor = expand("<cword>")
   let url = "http://social.msdn.microsoft.com/Search/en-US/?Query=" . wordUnderCursor
   let cmd = ":silent ! start " . url
@@ -162,7 +129,7 @@ endfunction
 
 
 "start local web server and browser
-function! s:ShowAppInBrowser()
+function! s:ASPRun()
   "look in the most common places for the webserver. Let's hope you didn't
   "install to a non-standard place...
   let serverpaths = ['C:\\Program Files (x86)\\Common Files\\microsoft shared\\DevServer\\10.0\\WebDev.WebServer20.exe', 'C:\\Program Files\\Common Files\\microsoft shared\\DevServer\\10.0\\WebDev.WebServer20.exe', 'C:\\Program Files\\Common Files\\microsoft shared\\DevServer\\9.0\\Webdev.WebServer.exe','C:\\Program Files (x86)\\Common Files\\microsoft shared\\DevServer\\9.0\\Webdev.WebServer.exe']

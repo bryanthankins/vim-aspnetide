@@ -6,6 +6,7 @@ Features
 * BuildSolution - <leader>B: Find a solution file for the project and build. Errors shown in quickfix. 
 * AlternateFile - <leader>A: Navigate to alternate files (ASPX <-> code-behind). 
 * ShowAppInBrowser - F5: Run app in local webserver and navigate to selected page. 
+* GoToFile - <leader>G: Look for class file based on current word.
 
 Notes 
 -------- 
@@ -16,5 +17,5 @@ Notes
  
 Usage
 ------
-Copy this file to vimfiles/plugin/aspnetide.vim.
+Copy plugin file to vimfiles/plugin/aspnetide.vim.
 
