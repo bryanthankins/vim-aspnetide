@@ -9,20 +9,21 @@ endif
 let g:loaded_aspnetide= 1
 
 "map keys to new functions
-map <silent> <F1> :call <SID>ASPDoc()<CR>
-imap <silent> <F1> <ESC>:call <SID>ASPDoc()<CR>
-map <silent> <leader>H :call <SID>ASPDoc()<CR>
-imap <silent> <leader>H <ESC>:call <SID>ASPDoc()<CR>
-map <silent> <leader>A :call <SID>ASPAltFile()<CR>
-imap <silent> <leader>A <ESC>:call <SID>ASPAltFile()<CR>
-map <silent> <leader>R :call <SID>ASPRun()<CR>
-imap <silent> <leader>R <ESC>:call <SID>ASPRun()<CR>
+"nmenomic is A for ASP plus do function keys like asp.net devs expect
+map <silent> <F1> :call <SID>ASPHelp()<CR>
+imap <silent> <F1> <ESC>:call <SID>ASPHelp()<CR>
+map <silent> <leader>ah :call <SID>ASPHelp()<CR>
+imap <silent> <leader>ah <ESC>:call <SID>ASPHelp()<CR>
+map <silent> <leader>af :call <SID>ASPAltFile()<CR>
+imap <silent> <leader>af <ESC>:call <SID>ASPAltFile()<CR>
+map <silent> <leader>ar :call <SID>ASPRun()<CR>
+imap <silent> <leader>ar <ESC>:call <SID>ASPRun()<CR>
 map <silent> <F5> :call <SID>ASPRun()<CR>
 imap <silent> <F5> <ESC>:call <SID>ASPRun()<CR>
-map <silent> <leader>B :call <SID>ASPBuild()<CR>
-imap <silent> <leader>B <ESC>:call <SID>ASPBuild()<CR>
-map <silent> <leader>G :call <SID>ASPGoTo()<CR>
-imap <silent> <leader>G <ESC>:call <SID>ASPGoTo()<CR>
+map <silent> <leader>ab :call <SID>ASPBuild()<CR>
+imap <silent> <leader>ab <ESC>:call <SID>ASPBuild()<CR>
+map <silent> <leader>ag :call <SID>ASPGoTo()<CR>
+imap <silent> <leader>ag <ESC>:call <SID>ASPGoTo()<CR>
 
 function! s:ASPAltFile()
     let currExt = expand('%:e') 
@@ -46,7 +47,6 @@ endf
 function! s:ReadableWithExt(path, extensions)
 	for ext in a:extensions
 		if filereadable(a:path.ext)
-             exe 'w'
              exe 'e '.a:path.ext
 			return 1
 		endif
@@ -57,7 +57,6 @@ endf
 function! s:ReadableWithoutExt(path, extensions)
 	for ext in a:extensions
 		if filereadable(a:path)
-            exe 'w'
             exe 'e '.a:path
 			return 1
 		endif
@@ -70,7 +69,6 @@ function! s:ASPGoTo()
     let currSearchPath = expand('%:p:h:h:h').'\**'
     let fileToFind = findfile(currFileMatch,currSearchPath)
     if filereadable(fileToFind)
-        exe 'w'
         exe 'e '.fileToFind
     else
         echoh ErrorMsg | echo 'Could not find file.' | echoh None
@@ -119,7 +117,7 @@ function! s:ASPBuild()
 endf
 
 "setup integrated help
-function! s:ASPDoc()
+function! s:ASPHelp()
   let wordUnderCursor = expand("<cword>")
   let url = "http://social.msdn.microsoft.com/Search/en-US/?Query=" . wordUnderCursor
   let cmd = ":silent ! start " . url
