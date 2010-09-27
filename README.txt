@@ -21,7 +21,7 @@ aspnetide defines the following commands:
    Find a solution file for the project and build. Errors shown in quickfix. Function mapped to <leader>ab
 
 :ASPAltFile                                     *:ASPAltFile*
-   Navigate to alternate files (ASPX <-> code-behind). Function mapped to <leader>af
+   Navigate to alternate files (ASPX <-> code-behind). It will detect whether it's running in a webforms or MVC app. In webforms mode, it will jump between the view and code-behind files. In MVC mode it will jump between Controller and View template. Function mapped to <leader>af
 
 :ASPRun                                         *:ASPRun*
    Run app in local webserver and navigate to selected page. Function mapped

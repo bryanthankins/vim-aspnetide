@@ -25,22 +25,66 @@ imap <silent> <leader>ab <ESC>:call <SID>ASPBuild()<CR>
 map <silent> <leader>ag :call <SID>ASPGoTo()<CR>
 imap <silent> <leader>ag <ESC>:call <SID>ASPGoTo()<CR>
 
+function! s:MVCMode()
+    if search('System.Web.Mvc','n') != 0
+        return 1
+    else
+        return 0
+    endif
+endf
+
 function! s:ASPAltFile()
-    let currExt = expand('%:e') 
-    if currExt == 'aspx' || currExt == 'ascx' 
-        let path = expand('%:p').'.'
-        let extensions = ['cs','vb']
-        if !s:ReadableWithExt(path, extensions)
-              echoh ErrorMsg | echo 'Alternate file not found.' | echoh None
-        endif
-    elseif currExt == 'cs' || currExt == 'vb'
-        let path = expand('%:p:r')
-        let extensions = ['aspx','ascx']
-        if !s:ReadableWithoutExt(path, extensions)
-              echoh ErrorMsg | echo 'Alternate file not found.' | echoh None
+    if s:MVCMode()
+        "MVC Mode assumes they followed MVC naming conventions for files and
+        "folders
+        if expand('%:e') == 'aspx'
+            "if in view, look at folder name and find controller of same name
+            let foldername = expand('%:h:t')
+            let currSearchPath = expand('%:p:h:h:h').'\Controllers\**'
+            let fileToFind = findfile(foldername.'Controller.cs',currSearchPath)
+            if filereadable(fileToFind)
+                exe 'e '.fileToFind
+            else
+                echoh ErrorMsg | echo 'Alternate file not found.' | echoh None
+            endif
+        else
+            "if in controller, get function name and look for aspx of same name in view folder
+            "get current function name (eg - About)
+            let functionLine =  search('public','bcW')
+            if functionLine != 0
+                normal f(b
+                let currFunc = expand('<cword>')
+                let currFileName = substitute(expand('%:p:t:r'),'Controller','','')
+
+                "Find file in Views folder then "Home" folder then "About".aspx
+                let currSearchPath = expand('%:p:h:h').'\Views\'
+                let fileToFind = currSearchPath.currFileName.'\'.currFunc.'.aspx'
+                if filereadable(fileToFind)
+                    exe 'e '.fileToFind
+                else
+                    echoh ErrorMsg | echo 'Alternate file not found.' | echoh None
+                endif
+            else
+                echoh ErrorMsg | echo 'Alternate file not found.' | echoh None
+            endif
         endif
     else
-        echoh ErrorMsg | echo 'Alternate file not found.' | echoh None
+        let currExt = expand('%:e') 
+        if currExt == 'aspx' || currExt == 'ascx' 
+            let path = expand('%:p').'.'
+            let extensions = ['cs','vb']
+            if !s:ReadableWithExt(path, extensions)
+                  echoh ErrorMsg | echo 'Alternate file not found.' | echoh None
+            endif
+        elseif currExt == 'cs' || currExt == 'vb'
+            let path = expand('%:p:r')
+            let extensions = ['aspx','ascx']
+            if !s:ReadableWithoutExt(path, extensions)
+                  echoh ErrorMsg | echo 'Alternate file not found.' | echoh None
+            endif
+        else
+            echoh ErrorMsg | echo 'Alternate file not found.' | echoh None
+        endif
     endif
 endf
 
@@ -93,7 +137,9 @@ function! s:ASPBuild()
     "let's check a couple logical places and hope you didn't install on the d drive...
     let foundsln = 0
     let foundmsbuild = 0
-    let msbuildpaths = ['C:\\Windows\\Microsoft.NET\\Framework\\v4.0.30319\\MSBuild.exe', 'C:\\winnt\\Microsoft.NET\\Framework\\v4.0.30319\\MSBuild.exe', 'C:\\WINDOWS\\Microsoft.NET\\Framework\\v3.5\MSBuild.exe']
+    let msbuildpaths = ['C:\\Windows\\Microsoft.NET\\Framework\\v4.0.30319\\MSBuild.exe', 
+                \            'C:\\winnt\\Microsoft.NET\\Framework\\v4.0.30319\\MSBuild.exe', 
+                \            'C:\\WINDOWS\\Microsoft.NET\\Framework\\v3.5\MSBuild.exe']
     for msbuild in msbuildpaths
         if filereadable(msbuild)
             let foundmsbuild = 1
@@ -130,7 +176,10 @@ endfunction
 function! s:ASPRun()
   "look in the most common places for the webserver. Let's hope you didn't
   "install to a non-standard place...
-  let serverpaths = ['C:\\Program Files (x86)\\Common Files\\microsoft shared\\DevServer\\10.0\\WebDev.WebServer20.exe', 'C:\\Program Files\\Common Files\\microsoft shared\\DevServer\\10.0\\WebDev.WebServer20.exe', 'C:\\Program Files\\Common Files\\microsoft shared\\DevServer\\9.0\\Webdev.WebServer.exe','C:\\Program Files (x86)\\Common Files\\microsoft shared\\DevServer\\9.0\\Webdev.WebServer.exe']
+  let serverpaths = ['C:\\Program Files (x86)\\Common Files\\microsoft shared\\DevServer\\10.0\\WebDev.WebServer20.exe', 
+              \        'C:\\Program Files\\Common Files\\microsoft shared\\DevServer\\10.0\\WebDev.WebServer20.exe',
+              \        'C:\\Program Files\\Common Files\\microsoft shared\\DevServer\\9.0\\Webdev.WebServer.exe',
+              \        'C:\\Program Files (x86)\\Common Files\\microsoft shared\\DevServer\\9.0\\Webdev.WebServer.exe']
   for path in serverpaths
       if filereadable(path)
           "Start server
