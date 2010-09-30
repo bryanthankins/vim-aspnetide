@@ -13,7 +13,8 @@ aspnetide defines the following commands:
 |:ASPAltFile|
 |:ASPRun|
 |:ASPGoTo|
-
+|:ASPDatabase|
+ 
 :ASPHelp                                         *:ASPHelp*
    Jump to online help based on selected word: F1 or <leader>ah
 
@@ -21,7 +22,7 @@ aspnetide defines the following commands:
    Find a solution file for the project and build. Errors shown in quickfix. Function mapped to <leader>ab
 
 :ASPAltFile                                     *:ASPAltFile*
-   Navigate to alternate files (ASPX <-> code-behind). It will detect whether it's running in a webforms or MVC app. In webforms mode, it will jump between the view and code-behind files. In MVC mode it will jump between Controller and View template. Function mapped to <leader>af
+   Navigate to alternate files (ASPX <-> code-behind). It will detect whether it's running in a webforms or MVC app. In webforms mode, it will jump between the view and code-behind files. In MVC mode it will jump between Controller and View template. Function mapped to <leader>af or <leader>aw to open in a new window.
 
 :ASPRun                                         *:ASPRun*
    Run app in local webserver and navigate to selected page. Function mapped
@@ -29,6 +30,9 @@ aspnetide defines the following commands:
 
 :ASPGoTo                                        *:ASPGoTo*
    Takes you to the class file based on the current word. So if you are on "Utility" it will look through the directory tree for the utility class file. Function mapped to <leader>ag
+
+:ASPDatabase                                    *:ASPDatabase*
+   Requires the vim DBext plugin. Parses the web.config and loads all connection strings into preconfigured connections accessible from SQL Buffer Prompt (<leader>sbp) and easy querying from DBExt. Function mapped to <leader>ad
 
 The latest stable version can be found at:
     http://www.vim.org/scripts/script.php?script_id=3243

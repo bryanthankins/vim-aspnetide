@@ -14,8 +14,10 @@ map <silent> <F1> :call <SID>ASPHelp()<CR>
 imap <silent> <F1> <ESC>:call <SID>ASPHelp()<CR>
 map <silent> <leader>ah :call <SID>ASPHelp()<CR>
 imap <silent> <leader>ah <ESC>:call <SID>ASPHelp()<CR>
-map <silent> <leader>af :call <SID>ASPAltFile()<CR>
-imap <silent> <leader>af <ESC>:call <SID>ASPAltFile()<CR>
+map <silent> <leader>af :call <SID>ASPAltFile(0)<CR>
+imap <silent> <leader>af <ESC>:call <SID>ASPAltFile(0)<CR>
+map <silent> <leader>aw :call <SID>ASPAltFile(1)<CR>
+imap <silent> <leader>aw <ESC>:call <SID>ASPAltFile(1)<CR>
 map <silent> <leader>ar :call <SID>ASPRun()<CR>
 imap <silent> <leader>ar <ESC>:call <SID>ASPRun()<CR>
 map <silent> <F5> :call <SID>ASPRun()<CR>
@@ -24,6 +26,8 @@ map <silent> <leader>ab :call <SID>ASPBuild()<CR>
 imap <silent> <leader>ab <ESC>:call <SID>ASPBuild()<CR>
 map <silent> <leader>ag :call <SID>ASPGoTo()<CR>
 imap <silent> <leader>ag <ESC>:call <SID>ASPGoTo()<CR>
+map <silent> <leader>ad :call <SID>ASPLoadDB()<CR>
+imap <silent> <leader>ad <ESC>:call <SID>ASPLoadDB()<CR>
 
 function! s:MVCMode()
     if search('System.Web.Mvc','n') != 0
@@ -33,7 +37,52 @@ function! s:MVCMode()
     endif
 endf
 
-function! s:ASPAltFile()
+function! s:ASPLoadDB()
+    if !exists('g:loaded_dbext')
+        echoh ErrorMsg | echo 'Could not find DBExt plugin' | echoh None
+        return
+    endif
+
+    "find web.config
+    let currSearchPath = expand('%:p:h').'\**'
+    let fileToFind = findfile('web.config',currSearchPath)
+    echo 'found '.fileToFind
+    if filereadable(fileToFind)
+        for line in readfile(fileToFind)
+            "find connstring
+            if line =~ 'connectionString' 
+                let dbExtResult = 'type=SQLSRV'
+                let name = matchstr(line, 'name="\w*"') 
+                let nameValue = matchstr(name, '"\w*"')
+                let connstring = matchstr(line, 'connectionString=".*"') 
+                let connstringValue = matchstr(connstring,'".*"') 
+                for connValue in split(substitute(connstringValue,'"','',''),';')
+                    let connList = split(connValue,'=')
+                    if connList[0] =~ '[Dd]atabase\|[Ii]nitial [Cc]atalog'
+                        let dbExtResult .= ':dbname='.connList[1]
+                    elseif connList[0] =~ '[Ss]erver'
+                        let dbExtResult .= ':srvname='.connList[1]
+                    elseif connList[0] =~ '[Ii]ntegrated [Ss]ecurity\|Trusted_Connection'
+                        if connList[1] =~ 'SSPI\|True'
+                            let dbExtResult .= ':integratedlogin=1'
+                        endif
+                    elseif connList[0] =~ 'UID\|User I[Dd]\|uid'
+                        let dbExtResult .= ':user='.connList[1]
+                    elseif connList[0] =~ '[Pp]assword\|PWD\|pwd'
+                        let dbExtResult .= ':passwd='.connList[1]
+                    endif
+                endfor
+                if dbExtResult != 'type=SQLSRV'
+                    echo 'let g:dbext_default_profile_'.substitute(nameValue,'"','','g').'='''.dbExtResult.''''
+                endif
+            endif
+        endfor
+    else
+        echoh ErrorMsg | echo 'Could not find web.config' | echoh None
+    endif
+endf
+
+function! s:ASPAltFile(newWin)
     if s:MVCMode()
         "MVC Mode assumes they followed MVC naming conventions for files and
         "folders
@@ -43,6 +92,9 @@ function! s:ASPAltFile()
             let currSearchPath = expand('%:p:h:h:h').'\Controllers\**'
             let fileToFind = findfile(foldername.'Controller.cs',currSearchPath)
             if filereadable(fileToFind)
+                if a:newWin == 1
+                    exe 'sp '
+                endif
                 exe 'e '.fileToFind
             else
                 echoh ErrorMsg | echo 'Alternate file not found.' | echoh None
@@ -60,6 +112,9 @@ function! s:ASPAltFile()
                 let currSearchPath = expand('%:p:h:h').'\Views\'
                 let fileToFind = currSearchPath.currFileName.'\'.currFunc.'.aspx'
                 if filereadable(fileToFind)
+                     if a:newWin == 1
+                         exe 'sp '
+                     endif
                     exe 'e '.fileToFind
                 else
                     echoh ErrorMsg | echo 'Alternate file not found.' | echoh None
@@ -73,13 +128,13 @@ function! s:ASPAltFile()
         if currExt == 'aspx' || currExt == 'ascx' 
             let path = expand('%:p').'.'
             let extensions = ['cs','vb']
-            if !s:ReadableWithExt(path, extensions)
+            if !s:ReadableWithExt(path, extensions, a:newWin)
                   echoh ErrorMsg | echo 'Alternate file not found.' | echoh None
             endif
         elseif currExt == 'cs' || currExt == 'vb'
             let path = expand('%:p:r')
             let extensions = ['aspx','ascx']
-            if !s:ReadableWithoutExt(path, extensions)
+            if !s:ReadableWithoutExt(path, extensions, a:newWin)
                   echoh ErrorMsg | echo 'Alternate file not found.' | echoh None
             endif
         else
@@ -88,9 +143,12 @@ function! s:ASPAltFile()
     endif
 endf
 
-function! s:ReadableWithExt(path, extensions)
+function! s:ReadableWithExt(path, extensions, newWin)
 	for ext in a:extensions
 		if filereadable(a:path.ext)
+             if a:newWin == 1
+                 exe 'sp '
+             endif
              exe 'e '.a:path.ext
 			return 1
 		endif
@@ -98,9 +156,12 @@ function! s:ReadableWithExt(path, extensions)
 	return 0
 endf
 
-function! s:ReadableWithoutExt(path, extensions)
+function! s:ReadableWithoutExt(path, extensions, newWin)
 	for ext in a:extensions
 		if filereadable(a:path)
+             if a:newWin == 1
+                 exe 'sp '
+             endif
             exe 'e '.a:path
 			return 1
 		endif
