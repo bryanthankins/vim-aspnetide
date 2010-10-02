@@ -211,6 +211,7 @@ function! s:ASPBuild()
                 exe 'set makeprg='.msbuild.'\ /nologo\ /v:q\ '
                 mak
                 cope
+                return 1
             endif
         endif
     endfor
@@ -237,8 +238,8 @@ endfunction
 function! s:ASPRun()
   "look in the most common places for the webserver. Let's hope you didn't
   "install to a non-standard place...
-  let serverpaths = ['C:\\Program Files (x86)\\Common Files\\microsoft shared\\DevServer\\10.0\\WebDev.WebServer20.exe', 
-              \        'C:\\Program Files\\Common Files\\microsoft shared\\DevServer\\10.0\\WebDev.WebServer20.exe',
+  let serverpaths = ['C:\\Program Files (x86)\\Common Files\\microsoft shared\\DevServer\\10.0\\WebDev.WebServer40.exe', 
+              \        'C:\\Program Files\\Common Files\\microsoft shared\\DevServer\\10.0\\WebDev.WebServer40.exe',
               \        'C:\\Program Files\\Common Files\\microsoft shared\\DevServer\\9.0\\Webdev.WebServer.exe',
               \        'C:\\Program Files (x86)\\Common Files\\microsoft shared\\DevServer\\9.0\\Webdev.WebServer.exe']
   for path in serverpaths
