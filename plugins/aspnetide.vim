@@ -50,7 +50,7 @@ function! s:ASPLoadDB()
     if filereadable(fileToFind)
         for line in readfile(fileToFind)
             "find connstring
-            if line =~ 'connectionString' 
+            if line =~ '\<connectionString' 
                 let dbExtResult = 'type=SQLSRV'
                 let name = matchstr(line, 'name="\w*"') 
                 let nameValue = matchstr(name, '"\w*"')
@@ -73,7 +73,7 @@ function! s:ASPLoadDB()
                     endif
                 endfor
                 if dbExtResult != 'type=SQLSRV'
-                    echo 'let g:dbext_default_profile_'.substitute(nameValue,'"','','g').'='''.dbExtResult.''''
+                    exe 'let g:dbext_default_profile_'.substitute(nameValue,'"','','g').'='''.dbExtResult.''''
                 endif
             endif
         endfor
