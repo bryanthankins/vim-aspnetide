@@ -60,7 +60,7 @@ function! s:ASPLoadDB()
                     let connList = split(connValue,'=')
                     if connList[0] =~ '[Dd]atabase\|[Ii]nitial [Cc]atalog'
                         let dbExtResult .= ':dbname='.connList[1]
-                    elseif connList[0] =~ '[Ss]erver'
+                    elseif connList[0] =~ '[Ss]erver\|[Dd]ata [Ss]ource'
                         let dbExtResult .= ':srvname='.connList[1]
                     elseif connList[0] =~ '[Ii]ntegrated [Ss]ecurity\|Trusted_Connection'
                         if connList[1] =~ 'SSPI\|True'
@@ -73,6 +73,7 @@ function! s:ASPLoadDB()
                     endif
                 endfor
                 if dbExtResult != 'type=SQLSRV'
+                    echo 'let g:dbext_default_profile_'.substitute(nameValue,'"','','g').'='''.dbExtResult.''''
                     exe 'let g:dbext_default_profile_'.substitute(nameValue,'"','','g').'='''.dbExtResult.''''
                 endif
             endif
@@ -195,13 +196,29 @@ function! s:ASPBuild()
         endif
     endif
 
-    "let's check a couple logical places and hope you didn't install on the d drive...
+    "Parse out sln to determine version
+    if filereadable(dotnet_sln)
+        let slnVersion = '0'
+        for line in readfile(dotnet_sln)
+            if line =~ '11.00'
+                let slnVersion = '11.00'
+            endif
+        endfor
+        echo 'version '.slnVersion
+
+        if slnVersion == '11.00'
+            "TO DO - Make these more generic
+            let msbuild = 'C:\\Windows\\Microsoft.NET\\Framework\\v4.0.30319\\MSBuild.exe'
+        else
+            let msbuild = 'C:\\WINDOWS\\Microsoft.NET\\Framework\\v3.5\MSBuild.exe'
+        endif
+    endif
+    
     let foundsln = 0
     let foundmsbuild = 0
-    let msbuildpaths = ['C:\\Windows\\Microsoft.NET\\Framework\\v4.0.30319\\MSBuild.exe', 
-                \            'C:\\winnt\\Microsoft.NET\\Framework\\v4.0.30319\\MSBuild.exe', 
-                \            'C:\\WINDOWS\\Microsoft.NET\\Framework\\v3.5\MSBuild.exe']
-    for msbuild in msbuildpaths
+    "let msbuildpaths = ['C:\\Windows\\Microsoft.NET\\Framework\\v4.0.30319\\MSBuild.exe', 
+    "            \            'C:\\WINDOWS\\Microsoft.NET\\Framework\\v3.5\MSBuild.exe']
+    "for msbuild in msbuildpaths
         if filereadable(msbuild)
             let foundmsbuild = 1
             if filereadable(dotnet_sln) 
@@ -214,7 +231,7 @@ function! s:ASPBuild()
                 return 1
             endif
         endif
-    endfor
+    "endfor
     "add some messaging if things go bad
     if foundsln == 0
         echoh ErrorMsg | echo 'Could not find solution file.' | echoh None
@@ -236,12 +253,41 @@ endfunction
 
 "start local web server and browser
 function! s:ASPRun()
-  "look in the most common places for the webserver. Let's hope you didn't
-  "install to a non-standard place...
-  let serverpaths = ['C:\\Program Files (x86)\\Common Files\\microsoft shared\\DevServer\\10.0\\WebDev.WebServer40.exe', 
-              \        'C:\\Program Files\\Common Files\\microsoft shared\\DevServer\\10.0\\WebDev.WebServer40.exe',
-              \        'C:\\Program Files\\Common Files\\microsoft shared\\DevServer\\9.0\\Webdev.WebServer.exe',
-              \        'C:\\Program Files (x86)\\Common Files\\microsoft shared\\DevServer\\9.0\\Webdev.WebServer.exe']
+    let dotnet_sln = fnameescape(globpath(expand('%:p:h'), '*.sln'))
+    " Search a few levels up to see if we can find the sln file
+    if empty(dotnet_sln)
+        let dotnet_sln  = fnameescape(globpath(expand('%:p:h:h'), '*.sln'))
+
+        if empty(dotnet_sln)
+            let dotnet_sln = fnameescape(globpath(expand('%:p:h:h:h'), '*.sln'))
+            if empty(dotnet_sln)
+                let dotnet_sln = fnameescape(globpath(expand('%:p:h:h:h:h'), '*.sln'))
+            endif
+        endif
+    endif
+    "Parse out sln to determine version
+    if filereadable(dotnet_sln)
+        let slnVersion = '0'
+        for line in readfile(dotnet_sln)
+            if line =~ '11.00'
+                let slnVersion = '11.00'
+            endif
+        endfor
+        echo 'version '.slnVersion
+
+        if slnVersion == '11.00'
+            "TO DO - Make these more generic
+            let serverpaths = ['C:\\Program Files (x86)\\Common Files\\microsoft shared\\DevServer\\10.0\\WebDev.WebServer40.exe', 
+                        \        'C:\\Program Files\\Common Files\\microsoft shared\\DevServer\\10.0\\WebDev.WebServer40.exe']
+        else
+            let serverpaths = [ 'C:\\Program Files\\Common Files\\microsoft shared\\DevServer\\9.0\\Webdev.WebServer.exe',
+                        \        'C:\\Program Files (x86)\\Common Files\\microsoft shared\\DevServer\\9.0\\Webdev.WebServer.exe']
+        endif
+    endif
+  "let serverpaths = ['C:\\Program Files (x86)\\Common Files\\microsoft shared\\DevServer\\10.0\\WebDev.WebServer40.exe', 
+              "\        'C:\\Program Files\\Common Files\\microsoft shared\\DevServer\\10.0\\WebDev.WebServer40.exe',
+              "\        'C:\\Program Files\\Common Files\\microsoft shared\\DevServer\\9.0\\Webdev.WebServer.exe',
+              "\        'C:\\Program Files (x86)\\Common Files\\microsoft shared\\DevServer\\9.0\\Webdev.WebServer.exe']
   for path in serverpaths
       if filereadable(path)
           "Start server
@@ -253,7 +299,7 @@ function! s:ASPRun()
           return 1
       endif
   endfor
-  echoh ErrorMsg | echo 'Could not find local webserver.' | echoh None
+  echoh ErrorMsg | echo 'Could not find local webserver at path'.path | echoh None
   return 0
 endfunction
 
