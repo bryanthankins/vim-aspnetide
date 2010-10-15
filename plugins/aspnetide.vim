@@ -29,6 +29,7 @@ imap <silent> <leader>ag <ESC>:call <SID>ASPGoTo()<CR>
 map <silent> <leader>ad :call <SID>ASPLoadDB()<CR>
 imap <silent> <leader>ad <ESC>:call <SID>ASPLoadDB()<CR>
 
+
 function! s:MVCMode()
     if search('System.Web.Mvc','n') != 0
         return 1
@@ -204,7 +205,6 @@ function! s:ASPBuild()
                 let slnVersion = '11.00'
             endif
         endfor
-        echo 'version '.slnVersion
 
         if slnVersion == '11.00'
             "TO DO - Make these more generic
@@ -214,10 +214,9 @@ function! s:ASPBuild()
         endif
     endif
     
+    au QuickfixCmdPost make call QfMakeConv()
     let foundsln = 0
     let foundmsbuild = 0
-    "let msbuildpaths = ['C:\\Windows\\Microsoft.NET\\Framework\\v4.0.30319\\MSBuild.exe', 
-    "            \            'C:\\WINDOWS\\Microsoft.NET\\Framework\\v3.5\MSBuild.exe']
     "for msbuild in msbuildpaths
         if filereadable(msbuild)
             let foundmsbuild = 1
@@ -227,7 +226,6 @@ function! s:ASPBuild()
                 exe 'cd '. fnamemodify(dotnet_sln, ':p:h') 
                 exe 'set makeprg='.msbuild.'\ /nologo\ /v:q\ '
                 mak
-                cope
                 return 1
             endif
         endif
@@ -250,6 +248,21 @@ function! s:ASPHelp()
 endfunction
 
 
+fun! s:QfMakeConv()
+    let finalList = []
+    let qflist = getqflist()
+    for i in qflist
+        if match(i.text, "[Ee]rror") > 0 
+         call add(finalList,i)
+        endif
+    endfor
+    if len(finalList) == 0
+        let i = qflist[0] 
+        let i.text = "Build Succeeded!"
+        call add(finalList,i)
+    endif
+    call setqflist(finalList)
+endf
 
 "start local web server and browser
 function! s:ASPRun()
