@@ -214,7 +214,7 @@ function! s:ASPBuild()
         endif
     endif
     
-    au QuickfixCmdPost make call QfMakeConv()
+    au QuickfixCmdPost make call s:QfMakeConv()
     let foundsln = 0
     let foundmsbuild = 0
     "for msbuild in msbuildpaths
@@ -256,10 +256,12 @@ fun! s:QfMakeConv()
          call add(finalList,i)
         endif
     endfor
-    if len(finalList) == 0
+    if len(finalList) == 0 && len(qflist) > 0
         let i = qflist[0] 
         let i.text = "Build Succeeded!"
         call add(finalList,i)
+    else
+        echo "Build Succeeded!"
     endif
     call setqflist(finalList)
 endf
