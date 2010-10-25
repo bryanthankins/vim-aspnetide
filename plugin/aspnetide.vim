@@ -256,11 +256,11 @@ fun! s:QfMakeConv()
          call add(finalList,i)
         endif
     endfor
-    if len(finalList) == 0 && len(qflist) > 0
-        let i = qflist[0] 
-        let i.text = "Build Succeeded!"
-        call add(finalList,i)
-    else
+    if len(finalList) == 0 "&& len(qflist) > 0
+        "let i = qflist[0] 
+        "let i.text = "Build Succeeded!"
+        "call add(finalList,i)
+    "else
         echo "Build Succeeded!"
     endif
     call setqflist(finalList)
